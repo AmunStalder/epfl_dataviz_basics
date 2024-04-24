@@ -1,0 +1,79 @@
+---
+title: "Applied Data Science: Communication and Visualisation"
+author: "Amun Stalder"
+date: "25.04.2024"
+format: 
+  html:
+    fig-width: 8
+    fig-height: 4
+    code-fold: false
+---
+
+# Introduction
+As part of the *Applied Data Science: Communication and Visualisation* course for
+the Certificate of Open Studies (COS) of the EPFL, the students show their aquired skills
+in small data science projects. This Markdown file is about the analysis of the
+SMI data set, which contains data about the stock market. There were 10 tasks to
+analyse this data set and visualize the results obtained from the analysis.
+
+# Analysing the data
+## Loading the data
+Firstly, we load the data using the {readr} package. We then take a look at
+the individual columns and transform them if needed.
+
+```{r}
+#| warning: false
+
+library(readr)
+library(dplyr)
+
+df_smi_raw <- read_csv("data/data_smi.csv", show_col_types = FALSE)
+
+glimpse(df_smi_raw)
+```
+The data frame has 2 columns and 1336 rows.The date column seems to be a string,
+so let's convert it to a date format using {lubridate}.
+
+```{r}
+#| warning: false
+
+library(lubridate)
+
+df_smi <- df_smi_raw |>
+  mutate(date = dmy(date))
+  
+glimpse(df_smi)
+```
+The columns are now in a format we can use. To check missing values, we can use the
+{visdat} package:
+```{r}
+library(visdat)
+
+visdat::vis_dat(df_smi)
+
+```
+The data does not have any missing values.
+
+## Task 1: Generating a lineplot
+```{r}
+library(ggplot2)
+
+date_from = format(min(df_smi$date), "%d %b %Y")
+date_to = format(max(df_smi$date), "%d %b %Y")
+
+plot_smi_line <- df_smi |>
+  ggplot(aes(x=date, y=price)) +
+  geom_line(aes(color = "#eb34e5")) +
+  labs(
+   title = "Daily SMI prices",
+   subtitle = paste0("From ", date_from, " to ", date_to),
+   x = "Date",
+   y = "Daily Prices"
+  ) +
+  ylim(c(0, max(df_smi$price)*1.2)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+plot_smi_line
+```
