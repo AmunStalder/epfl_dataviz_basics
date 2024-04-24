@@ -58,22 +58,48 @@ The data does not have any missing values.
 ```{r}
 library(ggplot2)
 
-date_from = format(min(df_smi$date), "%d %b %Y")
-date_to = format(max(df_smi$date), "%d %b %Y")
 
-plot_smi_line <- df_smi |>
-  ggplot(aes(x=date, y=price)) +
-  geom_line(aes(color = "#eb34e5")) +
-  labs(
-   title = "Daily SMI prices",
-   subtitle = paste0("From ", date_from, " to ", date_to),
-   x = "Date",
-   y = "Daily Prices"
-  ) +
-  ylim(c(0, max(df_smi$price)*1.2)) +
-  theme_minimal() +
-  theme(
-    legend.position = "none"
-  )
-plot_smi_line
+
+plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE) {
+  checkmate::assert_data_frame(df)
+  checkmate::assert_character(date_breaks)
+  checkmate::assert_logical(angle)
+  
+  date_from = format(min(df$date), "%d %b %Y")
+  date_to = format(max(df$date), "%d %b %Y")
+  
+  p <- df |>
+    ggplot(aes(x = date, y = price)) +
+    geom_line(aes(color = "#eb34e5")) +
+    labs(
+      title = "Daily SMI prices",
+      subtitle = paste0("From ", date_from, " to ", date_to),
+      x = "Date",
+      y = "Daily Prices"
+    ) +
+    theme_minimal() +
+    scale_y_continuous(breaks = seq(0, 12000, 2000),
+                       limits = c(0, max(df$price) * 1.2),
+                       minor_breaks = NULL) +
+    scale_x_date(date_breaks = date_breaks,
+                 date_labels = case_when(
+                   date_breaks == "1 year" ~ "%Y",
+                   date_breaks == "1 month" ~ "%b %y"
+                 ) ,
+                 minor_breaks = NULL) +
+    theme(legend.position = "none")
+    if (angle) {
+      p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    }
+  return(p)
+}
+
+plot_smi_line(df_smi)
+```
+
+## Task 2: Generating a lineplot from 2019 on
+```{r}
+df_smi_2019 <- df_smi |> filter(date > "2018-12-31")
+plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE)
+
 ```
