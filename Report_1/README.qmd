@@ -195,15 +195,31 @@ df_smi_wkly <- df_smi_2019 |>
   summarize(wkly_means = mean(price)) |>
   ungroup()
 
-df_smi_wkly %>% 
+plot_weekly_smi_means <- df_smi_wkly %>% 
   ggplot(aes(x = week, y = wkly_means)) +
   geom_point(color = "blue") +
   labs(title = "Weekly SMI mean prices",
       x = "Date",
       y = "Weekly mean prices") +
   theme_minimal() +
-  scale_y_continuous(breaks = seq(0, 12000, 2000),
-                     limits = c(0, max(df_smi_wkly$wkly_means) * 1.2),
+  scale_y_continuous(breaks = seq(6000, 12000, 1000),
+                     limits = c(6000, max(df_smi_wkly$wkly_means) * 1.2),
                      minor_breaks = NULL) +
   theme(legend.position = "none")
+plot_weekly_smi_means
+```
+
+## Task 8: Adding Daily values
+```{r}
+#| warning: false
+
+plot_weekly_daily_smi <- plot_weekly_smi_means +
+  geom_point(data = df_smi_2019,
+             aes(x = date, y = price),
+             alpha = 0.3,
+             color = "pink",
+             size = 1)
+
+plot_weekly_daily_smi
+
 ```
