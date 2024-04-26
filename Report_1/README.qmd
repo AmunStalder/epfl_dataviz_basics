@@ -223,3 +223,25 @@ plot_weekly_daily_smi <- plot_weekly_smi_means +
 plot_weekly_daily_smi
 
 ```
+
+```{r}
+df_smi_monthly <- df_smi_2019 |>
+  mutate(month = tsibble::yearmonth(date)) |>
+  group_by(month) |>
+  summarize(monthly_means = mean(price)) |>
+  ungroup()
+
+plot_monthly_smi_means <- df_smi_monthly %>% 
+  ggplot(aes(x = month, y = monthly_means)) +
+  geom_point(color = "blue") +
+  labs(title = "Monthly SMI mean prices",
+      x = "Date",
+      y = "Monthly mean prices") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(6000, 12000, 1000),
+                     limits = c(6000, max(df_smi_monthly$monthly_means) * 1.2),
+                     minor_breaks = NULL) +
+  theme(legend.position = "none")
+plot_monthly_smi_means
+
+```
