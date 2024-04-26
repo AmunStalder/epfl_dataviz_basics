@@ -365,7 +365,7 @@ plot_btc <- df_btc_usd_1st %>%
   geom_line(color = "gold") +
   theme_minimal() +
     labs(
-    title = "Bitcoin amount in hypothetical wallet",
+    title = "USD amount in hypothetical wallet",
     x = "Date",
     y = "USD [Mio]"
   ) +

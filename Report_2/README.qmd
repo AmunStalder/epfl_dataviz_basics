@@ -1,0 +1,48 @@
+---
+title: "Applied Data Science: Communication and Visualisation - Project 1.2"
+author: "Amun Stalder"
+date: "2024-04-26"
+format: 
+  html:
+    fig-width: 8
+    fig-height: 4
+    code-fold: false
+---
+```{r setup, include=FALSE}
+#| warning: false
+```
+
+# Introduction
+As part of the *Applied Data Science: Communication and Visualisation* course for
+the Certificate of Open Studies (COS) of the EPFL, the students show their aquired skills
+in small data science projects. This Markdown file is about the analysis of network
+data set. 
+
+# Analysing the data
+## Loading the data
+Firstly, we load the data using the {readr} package. We make an initial data-wrangling
+in order to bring it in a useful format for network analysis
+
+```{r}
+#| warning: false
+
+library(readxl)
+library(tidygraph)
+library(ggplot2)
+library(ggraph)
+library(ggthemes)
+
+theme_set(theme_bw())
+df_edges <- read_excel("data/network_data.xlsx", sheet = "edges")
+df_nodes <- read_excel("data/network_data.xlsx", sheet = "nodes")
+
+twiddle_data <- tbl_graph(
+  nodes = df_nodes,
+  edges = df_edges
+)
+
+ggraph(twiddle_data, layout = "igraph", algorithm = "kk") +
+  geom_edge_link() +
+  geom_node_label(mapping = aes(label = name))
+
+```
