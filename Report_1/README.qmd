@@ -310,3 +310,70 @@ boxplot_smi <- df_smi_2019 %>% #TODO: Convert all pipes to "|>"
 boxplot_smi
 
 ```
+
+#Task 12: Bitcoin investments
+How rich would I be on the 1st of April, 2024 if I had invested 1000$ ever first 
+day of every month for thelast 10 years?
+
+## Importing data
+Data obtained from https://finance.yahoo.com/quote/BTC-USD/history?period1=1410912000&period2=1714136620
+Downloaded on the 26.04.2024
+```{r}
+df_btc_usd <- read_csv("data/BTC-USD.csv") %>% janitor::clean_names()
+
+glimpse(df_btc_usd)
+```
+We can see, that there are 4 values provided. For simplicity, we'll take the
+mean of them and plot the result as `geom_line`.
+
+```{r}
+df_btc_usd <- df_btc_usd %>%
+  rowwise() %>% 
+  mutate(daily_mean = mean(c(open, high, low, close)))
+
+plot_btc <- df_btc_usd %>% 
+  ggplot(aes(x=date, y = daily_mean)) +
+  geom_line(color = "lightblue") +
+  labs(
+    title = "Historic Bitcoin data",
+    x = "Date",
+    y = "Price [USD]"
+  ) +
+  theme_minimal()
+plot_btc
+```
+Now, lets filter the mean value of the 1st of every month and calculate how much
+we would get for our 1000$.
+
+```{r}
+df_btc_usd_1st <- df_btc_usd %>%
+  filter(date > "2014-03-31", date < "2024-04-02") %>%
+  mutate(month = yearmonth(date)) %>%
+  arrange(date) %>%
+  group_by(month) %>%
+  mutate(rn = row_number()) %>%
+  ungroup() %>%
+  filter(rn == 1) %>%
+  mutate(
+    bought_btc = 1000 / daily_mean,
+    cumsum_bought_btc = cumsum(bought_btc),
+    cumsum_earnings = (cumsum_bought_btc * daily_mean)/1000000
+  )
+
+plot_btc <- df_btc_usd_1st %>% 
+  ggplot(aes(x = date, cumsum_earnings)) +
+  geom_line(color = "gold") +
+  theme_minimal() +
+    labs(
+    title = "Bitcoin amount in hypothetical wallet",
+    x = "Date",
+    y = "USD [Mio]"
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 7, 0.5),
+    minor_breaks = NULL
+  )
+
+ggplotly(plot_btc)
+```
+This insight is extremely depressing.
