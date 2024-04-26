@@ -139,3 +139,46 @@ The values are depicted here:
 
 Screenshots of last and first values below 8900.- in 2019 and 2020, respectively.
 :::
+
+## Task 5: Finding the two dates using code
+Since we are Data Scientists, we can automate this task and print the results.
+```{r}
+#| warning: false
+
+get_date_below_price <- function(df, year, first_or_last = "first", price_threshold = 8900){
+  checkmate::assert_data_frame(df)
+  checkmate::assert_int(year)
+  checkmate::assert_numeric(price_threshold)
+  checkmate::assert_character(first_or_last)
+  
+  found_dates <- df |>
+    mutate(year_extracted = year(date)) |>
+    filter(year_extracted == year, price < price_threshold) |>
+    arrange(date) |> 
+    select(date)
+  if (first_or_last == "first") {
+    found_date <- found_dates |>
+      first() |>
+      pull()
+  } else if (first_or_last == "last") {
+    found_date <- found_dates |>
+      last() |>
+      pull()
+  }
+  return(found_date)
+}
+
+last_2019 <- get_date_below_price(df_smi, 2019, first_or_last = "last")
+first_2020 <- get_date_below_price(df_smi, 2020)
+
+```
+
+The last date with a price below 8900.- in 2019 was `r last_2019`.<br>
+The first date with a price bewlo 8900.- in 2020 was `r first_2020`.
+
+## Task 6: Calculating the number of days between `r last_2019` and `r first_2020`
+```{r}
+number_of_days_diff <- first_2020 - last_2019
+```
+The Dirrerence is `r number_of_days_diff` days.
+
