@@ -62,7 +62,7 @@ The data does not have any missing values.
 ## Task 1: Generating a lineplot
 ```{r}
 #| warning: false
-#| 
+
 library(ggplot2)
 
 plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE, hline = FALSE) {
@@ -113,5 +113,29 @@ plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE)
 ```
 ## Task 3: Adding a horizontal line at 8900.-
 ```{r}
-plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE, hline = TRUE)
+p_2019_hline <- plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE, hline = TRUE)
+p_2019_hline
 ```
+
+## Task 4: Adding ggplotly functionality for interactivity.
+Additionally, we search for the the date in 2019 for which the SMI value was below 
+CHF 8900 for the last time of the year. Then, find the date in 2020 for which the 
+SMI value was below CHF 8900 for the first time of the year.
+
+```{r}
+#| warning: false
+
+library(plotly)
+
+ggplotly(p_2019_hline)
+```
+The values are depicted here:
+
+::: {#fig-under_8900 layout-ncol=2}
+
+![Last value below 8900.- in 2019](data/last_value_2019.png){#2019}
+
+![First value below 8900.- in 2020](data/first_value_2020.png){#2020}
+
+Screenshots of last and first values below 8900.- in 2019 and 2020, respectively.
+:::
