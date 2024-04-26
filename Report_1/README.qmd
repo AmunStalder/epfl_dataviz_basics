@@ -65,43 +65,51 @@ The data does not have any missing values.
 
 library(ggplot2)
 
-plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE, hline = FALSE) {
-  checkmate::assert_data_frame(df)
-  checkmate::assert_character(date_breaks)
-  checkmate::assert_logical(angle)
-  checkmate::assert_logical(hline)
-  
-  date_from = format(min(df$date), "%d %b %Y")
-  date_to = format(max(df$date), "%d %b %Y")
-  
-  p <- df |>
-    ggplot(aes(x = date, y = price)) +
-    geom_line(color = "darkgreen") +
-    labs(
-      title = "Daily SMI prices",
-      subtitle = paste0("From ", date_from, " to ", date_to),
-      x = "Date",
-      y = "Daily Prices"
-    ) +
-    theme_minimal() +
-    scale_y_continuous(breaks = seq(0, 12000, 2000),
-                       limits = c(0, max(df$price) * 1.2),
-                       minor_breaks = NULL) +
-    scale_x_date(date_breaks = date_breaks,
-                 date_labels = case_when(
-                   date_breaks == "1 year" ~ "%Y",
-                   date_breaks == "1 month" ~ "%b %y"
-                 ) ,
-                 minor_breaks = NULL) +
-    theme(legend.position = "none")
+plot_smi_line <-
+  function(df,
+           date_breaks = "1 year",
+           angle = FALSE,
+           hline = FALSE) {
+    checkmate::assert_data_frame(df)
+    checkmate::assert_character(date_breaks)
+    checkmate::assert_logical(angle)
+    checkmate::assert_logical(hline)
+    
+    date_from = format(min(df$date), "%d %b %Y")
+    date_to = format(max(df$date), "%d %b %Y")
+    
+    p <- df |>
+      ggplot(aes(x = date, y = price)) +
+      geom_line(color = "darkgreen") +
+      labs(
+        title = "Daily SMI prices",
+        subtitle = paste0("From ", date_from, " to ", date_to),
+        x = "Date",
+        y = "Daily Prices"
+      ) +
+      theme_minimal() +
+      scale_y_continuous(
+        breaks = seq(0, 12000, 2000),
+        limits = c(0, max(df$price) * 1.2),
+        minor_breaks = NULL
+      ) +
+      scale_x_date(
+        date_breaks = date_breaks,
+        date_labels = case_when(date_breaks == "1 year" ~ "%Y",
+                                date_breaks == "1 month" ~ "%b %y") ,
+        minor_breaks = NULL
+      ) +
+      theme(legend.position = "none")
     if (angle) {
       p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
     }
     if (hline) {
-      p = p + geom_hline(yintercept = 8900, color = "red", size = 1)
+      p = p + geom_hline(yintercept = 8900,
+                         color = "red",
+                         size = 1)
     }
-  return(p)
-}
+    return(p)
+  }
 
 plot_smi_line(df_smi)
 ```
@@ -145,30 +153,35 @@ Since we are Data Scientists, we can automate this task and print the results.
 ```{r}
 #| warning: false
 
-get_date_below_price <- function(df, year, first_or_last = "first", price_threshold = 8900){
-  checkmate::assert_data_frame(df)
-  checkmate::assert_int(year)
-  checkmate::assert_numeric(price_threshold)
-  checkmate::assert_character(first_or_last)
-  
-  found_dates <- df |>
-    mutate(year_extracted = year(date)) |>
-    filter(year_extracted == year, price < price_threshold) |>
-    arrange(date) |> 
-    select(date)
-  if (first_or_last == "first") {
-    found_date <- found_dates |>
-      first() |>
-      pull()
-  } else if (first_or_last == "last") {
-    found_date <- found_dates |>
-      last() |>
-      pull()
+get_date_below_price <-
+  function(df,
+           year,
+           first_or_last = "first",
+           price_threshold = 8900) {
+    checkmate::assert_data_frame(df)
+    checkmate::assert_int(year)
+    checkmate::assert_numeric(price_threshold)
+    checkmate::assert_character(first_or_last)
+    
+    found_dates <- df |>
+      mutate(year_extracted = year(date)) |>
+      filter(year_extracted == year, price < price_threshold) |>
+      arrange(date) |>
+      select(date)
+    if (first_or_last == "first") {
+      found_date <- found_dates |>
+        first() |>
+        pull()
+    } else if (first_or_last == "last") {
+      found_date <- found_dates |>
+        last() |>
+        pull()
+    }
+    return(found_date)
   }
-  return(found_date)
-}
 
-last_2019 <- get_date_below_price(df_smi, 2019, first_or_last = "last")
+last_2019 <-
+  get_date_below_price(df_smi, 2019, first_or_last = "last")
 first_2020 <- get_date_below_price(df_smi, 2020)
 
 ```
@@ -187,61 +200,113 @@ The Dirrerence is `r number_of_days_diff` days.
 ```{r}
 #| warning: false
 
+
 library(tsibble)
 
+df_smi_2019 <- df_smi_2019 |>
+  mutate(week = tsibble::yearweek(date),
+         month = tsibble::yearmonth(date))
+
 df_smi_wkly <- df_smi_2019 |>
-  mutate(week = tsibble::yearweek(date)) |>
   group_by(week) |>
   summarize(wkly_means = mean(price)) |>
   ungroup()
 
-plot_weekly_smi_means <- df_smi_wkly %>% 
+plot_weekly_smi_means <- df_smi_wkly %>%
   ggplot(aes(x = week, y = wkly_means)) +
   geom_point(color = "blue") +
   labs(title = "Weekly SMI mean prices",
-      x = "Date",
-      y = "Weekly mean prices") +
+       x = "Date",
+       y = "Weekly mean prices") +
   theme_minimal() +
-  scale_y_continuous(breaks = seq(6000, 12000, 1000),
-                     limits = c(6000, max(df_smi_wkly$wkly_means) * 1.2),
-                     minor_breaks = NULL) +
+  scale_y_continuous(
+    breaks = seq(6000, 12000, 1000),
+    limits = c(6000, max(df_smi_wkly$wkly_means) * 1.2),
+    minor_breaks = NULL
+  ) +
   theme(legend.position = "none")
 plot_weekly_smi_means
 ```
 
-## Task 8: Adding Daily values
+## Task 8: Adding Daily values to weekly plot
 ```{r}
 #| warning: false
 
 plot_weekly_daily_smi <- plot_weekly_smi_means +
-  geom_point(data = df_smi_2019,
-             aes(x = date, y = price),
-             alpha = 0.3,
-             color = "pink",
-             size = 1)
+  geom_point(
+    data = df_smi_2019,
+    aes(x = week, y = price),
+    alpha = 0.3,
+    color = "pink",
+    size = 1
+  )
 
 plot_weekly_daily_smi
 
 ```
 
+
+## Task 9: Monthly means as Scatter Plot
 ```{r}
+
+
 df_smi_monthly <- df_smi_2019 |>
-  mutate(month = tsibble::yearmonth(date)) |>
   group_by(month) |>
   summarize(monthly_means = mean(price)) |>
   ungroup()
 
-plot_monthly_smi_means <- df_smi_monthly %>% 
+plot_monthly_smi_means <- df_smi_monthly %>%
   ggplot(aes(x = month, y = monthly_means)) +
   geom_point(color = "blue") +
   labs(title = "Monthly SMI mean prices",
-      x = "Date",
-      y = "Monthly mean prices") +
+       x = "Date",
+       y = "Monthly mean prices") +
   theme_minimal() +
-  scale_y_continuous(breaks = seq(6000, 12000, 1000),
-                     limits = c(6000, max(df_smi_monthly$monthly_means) * 1.2),
-                     minor_breaks = NULL) +
+  scale_y_continuous(
+    breaks = seq(6000, 12000, 1000),
+    limits = c(6000, max(df_smi_monthly$monthly_means) * 1.2),
+    minor_breaks = NULL
+  ) +
   theme(legend.position = "none")
 plot_monthly_smi_means
+
+```
+
+## Task 10: Adding Daily values to monthly plot
+```{r}
+#| warning: false
+
+plot_monthly_daily_smi <- plot_monthly_smi_means +
+  geom_point(
+    data = df_smi_2019,
+    aes(x = month, y = price),
+    alpha = 0.3,
+    color = "pink",
+    size = 1
+  )
+
+plot_monthly_daily_smi
+
+```
+
+## Task 11: Displaying distributions with boxplots
+```{r}
+library(forcats)
+df_smi_2019 <- df_smi_2019 %>%
+  arrange(date) %>%
+  mutate(month_fct = as.factor(month),
+         month_fct = fct_inorder(month_fct))
+
+boxplot_smi <- df_smi_2019 %>% #TODO: Convert all pipes to "|>"
+  ggplot(aes(x = month_fct, y = price, fill = month_fct)) +
+  geom_boxplot() +
+  labs(title = "Distribution of SMI Prices per month",
+       x = "Date",
+       y = "price") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+boxplot_smi
 
 ```
