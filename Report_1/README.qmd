@@ -8,6 +8,9 @@ format:
     fig-height: 4
     code-fold: false
 ---
+```{r setup, include=FALSE}
+#| warning: false
+```
 
 # Introduction
 As part of the *Applied Data Science: Communication and Visualisation* course for
@@ -47,6 +50,8 @@ glimpse(df_smi)
 The columns are now in a format we can use. To check missing values, we can use the
 {visdat} package:
 ```{r}
+#| warning: false
+#| 
 library(visdat)
 
 visdat::vis_dat(df_smi)
@@ -56,21 +61,22 @@ The data does not have any missing values.
 
 ## Task 1: Generating a lineplot
 ```{r}
+#| warning: false
+#| 
 library(ggplot2)
 
-
-
-plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE) {
+plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE, hline = FALSE) {
   checkmate::assert_data_frame(df)
   checkmate::assert_character(date_breaks)
   checkmate::assert_logical(angle)
+  checkmate::assert_logical(hline)
   
   date_from = format(min(df$date), "%d %b %Y")
   date_to = format(max(df$date), "%d %b %Y")
   
   p <- df |>
     ggplot(aes(x = date, y = price)) +
-    geom_line(aes(color = "#eb34e5")) +
+    geom_line(color = "darkgreen") +
     labs(
       title = "Daily SMI prices",
       subtitle = paste0("From ", date_from, " to ", date_to),
@@ -91,6 +97,9 @@ plot_smi_line <- function(df, date_breaks="1 year", angle = FALSE) {
     if (angle) {
       p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
     }
+    if (hline) {
+      p = p + geom_hline(yintercept = 8900, color = "red", size = 1)
+    }
   return(p)
 }
 
@@ -101,5 +110,8 @@ plot_smi_line(df_smi)
 ```{r}
 df_smi_2019 <- df_smi |> filter(date > "2018-12-31")
 plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE)
-
+```
+## Task 3: Adding a horizontal line at 8900.-
+```{r}
+plot_smi_line(df_smi_2019, date_breaks = "1 month", angle = TRUE, hline = TRUE)
 ```
