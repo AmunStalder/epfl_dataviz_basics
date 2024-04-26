@@ -114,8 +114,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="analysing-the-data" class="level1">
 <h1>Analysing the data</h1>
-<section id="loading-the-data" class="level2">
-<h2 class="anchored" data-anchor-id="loading-the-data">Loading the data</h2>
+<section id="tesk-1-loading-the-data-and-inspecting-a-first-graph" class="level2">
+<h2 class="anchored" data-anchor-id="tesk-1-loading-the-data-and-inspecting-a-first-graph">Tesk 1: Loading the data and inspecting a first graph</h2>
 <p>Firstly, we load the data using the {readr} package. We make an initial data-wrangling in order to bring it in a useful format for network analysis</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
@@ -123,21 +123,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggraph)</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggthemes)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>())</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>df_edges <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/network_data.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"edges"</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>df_nodes <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/network_data.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"nodes"</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>twiddle_data <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodes =</span> df_nodes,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">edges =</span> df_edges</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> name))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>())</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>df_edges <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/network_data.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"edges"</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>df_nodes <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"data/network_data.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"nodes"</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>twiddle_data <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">nodes =</span> df_nodes,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">edges =</span> df_edges</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> name))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="README_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+</section>
+<section id="task-2-displaying-only-firstnames" class="level2">
+<h2 class="anchored" data-anchor-id="task-2-displaying-only-firstnames">Task 2: Displaying only Firstnames</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_nodes_firstname <span class="ot">&lt;-</span> df_nodes <span class="sc">%&gt;%</span> </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">firstname =</span> <span class="fu">word</span>(name, <span class="dv">1</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>twiddle_data_firstname <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodes =</span> df_nodes_firstname,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">edges =</span> df_edges</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_firstname, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> firstname))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="README_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="768"></p>
 </div>
 </div>
 </section>

@@ -19,7 +19,7 @@ in small data science projects. This Markdown file is about the analysis of netw
 data set. 
 
 # Analysing the data
-## Loading the data
+## Tesk 1: Loading the data and inspecting a first graph
 Firstly, we load the data using the {readr} package. We make an initial data-wrangling
 in order to bring it in a useful format for network analysis
 
@@ -31,6 +31,7 @@ library(tidygraph)
 library(ggplot2)
 library(ggraph)
 library(ggthemes)
+library(dplyr)
 
 theme_set(theme_bw())
 df_edges <- read_excel("data/network_data.xlsx", sheet = "edges")
@@ -45,4 +46,22 @@ ggraph(twiddle_data, layout = "igraph", algorithm = "kk") +
   geom_edge_link() +
   geom_node_label(mapping = aes(label = name))
 
+```
+## Task 2: Displaying only Firstnames
+
+```{r}
+library(stringr)
+
+df_nodes_firstname <- df_nodes %>% 
+    mutate(firstname = word(name, 1))
+
+twiddle_data_firstname <- tbl_graph(
+    nodes = df_nodes_firstname,
+    edges = df_edges
+  )
+
+ggraph(twiddle_data_firstname, layout = "igraph", algorithm = "kk") +
+  geom_edge_link() +
+  geom_node_label(mapping = aes(label = firstname))
+  
 ```
