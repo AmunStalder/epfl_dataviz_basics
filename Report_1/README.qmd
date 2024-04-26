@@ -182,3 +182,28 @@ number_of_days_diff <- first_2020 - last_2019
 ```
 The Dirrerence is `r number_of_days_diff` days.
 
+## Task 7: Weekly means as Scatter Plot
+
+```{r}
+#| warning: false
+
+library(tsibble)
+
+df_smi_wkly <- df_smi_2019 |>
+  mutate(week = tsibble::yearweek(date)) |>
+  group_by(week) |>
+  summarize(wkly_means = mean(price)) |>
+  ungroup()
+
+df_smi_wkly %>% 
+  ggplot(aes(x = week, y = wkly_means)) +
+  geom_point(color = "blue") +
+  labs(title = "Weekly SMI mean prices",
+      x = "Date",
+      y = "Weekly mean prices") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(0, 12000, 2000),
+                     limits = c(0, max(df_smi_wkly$wkly_means) * 1.2),
+                     minor_breaks = NULL) +
+  theme(legend.position = "none")
+```
