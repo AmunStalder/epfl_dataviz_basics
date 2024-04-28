@@ -27,11 +27,12 @@ in order to bring it in a useful format for network analysis
 #| warning: false
 
 library(readxl)
+library(dplyr)
 library(tidygraph)
 library(ggplot2)
 library(ggraph)
 library(ggthemes)
-library(dplyr)
+
 
 theme_set(theme_bw())
 df_edges <- read_excel("data/network_data.xlsx", sheet = "edges")
@@ -123,7 +124,36 @@ ggraph(twiddle_data_firstname_counts, layout = "igraph", algorithm = "kk") +
     legend.position = "none"
   )
 
+
 ```
 The 4 most social People are `r top_4_string`with the number of interactions
 in brackets.
+
+## Task 4: Only showing names of 4 most interactive people
+
+```{r}
+
+ggraph(twiddle_data_firstname_counts,
+       layout = "igraph",
+       algorithm = "kk") +
+  geom_edge_link() +
+  geom_node_text(
+    mapping = aes(label = ifelse(top_4, firstname, ""),
+                  fill = top_4),
+    nudge_y = 0.28,
+    nudge_x = 0.28,
+
+  ) +
+  geom_node_point(mapping = aes(fill = top_4),
+                  shape = 21,
+                  size = 5) + 
+  labs(title = "Highlighting the <span style='color:gold'>top 4</span> most social individuals") +  
+  scale_fill_manual(values = c("TRUE" = "gold", "FALSE" = "white")) +
+  theme(plot.title = element_markdown(),
+        legend.position = "none")
+
+
+
+```
+
 
