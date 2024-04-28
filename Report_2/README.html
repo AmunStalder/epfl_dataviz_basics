@@ -154,14 +154,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_nodes_firstname <span class="ot">&lt;-</span> df_nodes <span class="sc">%&gt;%</span> </span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">firstname =</span> <span class="fu">word</span>(name, <span class="dv">1</span>))</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>twiddle_data_firstname <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodes =</span> df_nodes_firstname,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">edges =</span> df_edges</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_firstname, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> firstname))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>twiddle_data_firstname <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodes =</span> df_nodes_firstname,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">edges =</span> df_edges</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_firstname, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> firstname))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="README_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="768"></p>
 </div>
@@ -195,39 +196,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">rn =</span> <span class="fu">row_number</span>(),</span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">top_4 =</span> <span class="fu">ifelse</span>(<span class="fu">between</span>(rn,<span class="dv">1</span>,<span class="dv">4</span>), <span class="cn">TRUE</span>, <span class="cn">FALSE</span>)</span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co"># to display in text below the 4 most social individuals</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>top_4_string <span class="ot">&lt;-</span> df_nodes_firstname_counts <span class="sc">%&gt;%</span> </span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(top_4) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name_num =</span> <span class="fu">paste0</span>(name, <span class="st">" ("</span>, count_sum, <span class="st">"), "</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="dv">99</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">string =</span> <span class="fu">paste0</span>(name_num, <span class="at">collapse =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(string)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fill_color =</span> <span class="fu">case_when</span>(</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    rn <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"gold"</span>,</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    rn <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="st">"lightgreen"</span>,</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    rn <span class="sc">==</span> <span class="dv">3</span> <span class="sc">~</span> <span class="st">"orange"</span>,</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    rn <span class="sc">==</span> <span class="dv">4</span> <span class="sc">~</span> <span class="st">"lightblue"</span>,</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span><span class="st">"lightgrey"</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  ))</span>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>twiddle_data_firstname_counts <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodes =</span> df_nodes_firstname_counts,</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">edges =</span> df_edges</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_firstname_counts, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> firstname, <span class="at">fill =</span> top_4)) <span class="sc">+</span></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> <span class="st">"Highlighting the &lt;span style='color:gold'&gt;top 4&lt;/span&gt; most social individuals"</span></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"TRUE"</span> <span class="ot">=</span> <span class="st">"gold"</span>, <span class="st">"FALSE"</span> <span class="ot">=</span> <span class="st">"white"</span>)</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>df_edges_with_names <span class="ot">&lt;-</span> df_edges <span class="sc">%&gt;%</span> </span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_nodes_firstname_counts, <span class="fu">join_by</span>(from <span class="sc">==</span> id)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(from, to, fill_color) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_fill_color =</span> fill_color) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_nodes_firstname_counts, <span class="fu">join_by</span>(to <span class="sc">==</span> id)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(from, to, from_fill_color, fill_color) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="at">to_fill_color =</span> fill_color)</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="co"># to display in text below the 4 most social individuals</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>top_4_string <span class="ot">&lt;-</span> df_nodes_firstname_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(top_4) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name_num =</span> <span class="fu">paste0</span>(name, <span class="st">" ("</span>, count_sum, <span class="st">"), "</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="dv">99</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">string =</span> <span class="fu">paste0</span>(name_num, <span class="at">collapse =</span> <span class="st">""</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(string)</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>twiddle_data_firstname_counts <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodes =</span> df_nodes_firstname_counts,</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">edges =</span> df_edges_with_names</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_firstname_counts, <span class="at">layout =</span> <span class="st">"igraph"</span>, <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_label</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> firstname, <span class="at">fill =</span> fill_color)) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> <span class="st">"Highlighting the &lt;span style='color:gold'&gt;top 4&lt;/span&gt; most social individuals"</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="README_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="768"></p>
 </div>
 </div>
-<p>The 4 most social People are Silvestre Molina (17), Rain Lemmi (16), Woo-Jin Tosetti (12), Nyambura Fischer (10), with the number of interactions in brackets.</p>
+<p>The 4 most social People are Rain Lemmi (16), Nyambura Fischer (10), Woo-Jin Tosetti (12), Silvestre Molina (17), with the number of interactions in brackets.</p>
 </section>
 <section id="task-4-only-showing-names-of-4-most-interactive-people" class="level2">
 <h2 class="anchored" data-anchor-id="task-4-only-showing-names-of-4-most-interactive-people">Task 4: Only showing names of 4 most interactive people</h2>
@@ -243,11 +258,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="fl">0.28</span>,</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">fill =</span> top_4),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">fill =</span> fill_color),</span>
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">shape =</span> <span class="dv">21</span>,</span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>                  <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span> </span>
 <span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Highlighting the &lt;span style='color:gold'&gt;top 4&lt;/span&gt; most social individuals"</span>) <span class="sc">+</span>  </span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"TRUE"</span> <span class="ot">=</span> <span class="st">"gold"</span>, <span class="st">"FALSE"</span> <span class="ot">=</span> <span class="st">"white"</span>)) <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
 <span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -256,6 +271,49 @@ Ignoring unknown aesthetics: fill</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="README_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+</section>
+<section id="task-5-coloring-the-graph-a-little-more" class="level2">
+<h2 class="anchored" data-anchor-id="task-5-coloring-the-graph-a-little-more">Task 5: Coloring the graph a little more</h2>
+<p>We want each of the top 4 social people to have their own color. Next, we color the connections accordting to their color.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>top_4_list <span class="ot">&lt;-</span> df_nodes_firstname_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(top_4) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, rn, fill_color)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>twiddle_data_colored <span class="ot">&lt;-</span> twiddle_data_firstname_counts <span class="sc">%&gt;%</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">activate</span>(edges) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">edge_color =</span> <span class="fu">case_when</span>(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      from <span class="sc">%in%</span> top_4_list<span class="sc">$</span>id <span class="sc">&amp;</span> to <span class="sc">%in%</span> top_4_list<span class="sc">$</span>id <span class="sc">~</span> from_fill_color,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      from <span class="sc">%in%</span> top_4_list<span class="sc">$</span>id <span class="sc">~</span> from_fill_color,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>      to <span class="sc">%in%</span> top_4_list<span class="sc">$</span>id <span class="sc">~</span> to_fill_color,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"lightgrey"</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(twiddle_data_colored,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">layout =</span> <span class="st">"igraph"</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">algorithm =</span> <span class="st">"kk"</span>) <span class="sc">+</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">color =</span> edge_color)) <span class="sc">+</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">ifelse</span>(top_4, firstname, <span class="st">""</span>)),</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_y =</span> <span class="fl">0.28</span>,</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">nudge_x =</span> <span class="fl">0.28</span>,</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">fill =</span> fill_color),</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                  <span class="at">shape =</span> <span class="dv">21</span>,</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Highlighting the &lt;span style='color:gold'&gt;top 4&lt;/span&gt; most social individuals"</span>) <span class="sc">+</span>  </span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_color_identity</span>() <span class="sc">+</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        ) <span class="co">#legend.position = "none"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="README_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="768"></p>
 </div>
 </div>
 </section>
