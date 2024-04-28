@@ -44,7 +44,10 @@ twiddle_data <- tbl_graph(
 
 ggraph(twiddle_data, layout = "igraph", algorithm = "kk") +
   geom_edge_link() +
-  geom_node_label(mapping = aes(label = name))
+  geom_node_label(mapping = aes(label = name)) +
+  labs(
+    title = "A Visualization of a social network"
+  )
 
 ```
 ## Task 2: Displaying only Firstnames
@@ -65,3 +68,62 @@ ggraph(twiddle_data_firstname, layout = "igraph", algorithm = "kk") +
   geom_node_label(mapping = aes(label = firstname))
   
 ```
+## Task 3: Highlighting top 4 social People with most interactions.
+
+```{r}
+library(stringr)
+library(ggtext)
+
+# Generating two dfs having count of id for edges
+df_edges_count_to <- df_edges %>% 
+  count(to) %>% 
+  rename(count_to = n)
+
+df_edges_count_from <- df_edges %>% 
+  count(from) %>% 
+  rename(count_from = n)
+
+df_nodes_firstname_counts <- df_nodes_firstname %>% 
+  left_join(df_edges_count_to, join_by(id == to)) %>% 
+  left_join(df_edges_count_from, join_by(id == from)) %>% 
+  rowwise() %>% 
+  mutate(count_sum = sum(count_to, count_from, na.rm = TRUE)) %>% 
+  arrange(desc(count_sum)) %>% 
+  group_by(99) %>% 
+  mutate(
+    rn = row_number(),
+    top_4 = ifelse(between(rn,1,4), TRUE, FALSE)
+  ) %>% 
+  ungroup()
+
+# to display in text below the 4 most social individuals
+top_4_string <- df_nodes_firstname_counts %>% 
+  filter(top_4) %>% 
+  mutate(name_num = paste0(name, " (", count_sum, "), ")) %>% 
+  group_by(99) %>% 
+  summarize(string = paste0(name_num, collapse = "")) %>% 
+  pull(string)
+
+twiddle_data_firstname_counts <- tbl_graph(
+    nodes = df_nodes_firstname_counts,
+    edges = df_edges
+  )
+
+ggraph(twiddle_data_firstname_counts, layout = "igraph", algorithm = "kk") +
+  geom_edge_link() +
+  geom_node_label(mapping = aes(label = firstname, fill = top_4)) +
+  labs(
+      title = "Highlighting the <span style='color:gold'>top 4</span> most social individuals"
+    ) +
+  scale_fill_manual(
+    values = c("TRUE" = "gold", "FALSE" = "white")
+  ) +
+  theme(
+    plot.title = element_markdown(),
+    legend.position = "none"
+  )
+
+```
+The 4 most social People are `r top_4_string`with the number of interactions
+in brackets.
+
