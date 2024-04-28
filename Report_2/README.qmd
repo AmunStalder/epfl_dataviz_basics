@@ -14,12 +14,12 @@ format:
 
 # Introduction
 As part of the *Applied Data Science: Communication and Visualisation* course for
-the Certificate of Open Studies (COS) of the EPFL, the students show their aquired skills
+the Certificate of Open Studies (COS) of the EPFL, the students show their acquired skills
 in small data science projects. This Markdown file is about the analysis of network
 data set. 
 
 # Analysing the data
-## Tesk 1: Loading the data and inspecting a first graph
+## Task 1: Loading the data and inspecting a first graph
 Firstly, we load the data using the {readr} package. We make an initial data-wrangling
 in order to bring it in a useful format for network analysis
 
@@ -59,7 +59,6 @@ library(stringr)
 df_nodes_firstname <- df_nodes %>% 
     mutate(firstname = word(name, 1))
 
-
 twiddle_data_firstname <- tbl_graph(
     nodes = df_nodes_firstname,
     edges = df_edges
@@ -67,16 +66,22 @@ twiddle_data_firstname <- tbl_graph(
 
 ggraph(twiddle_data_firstname, layout = "igraph", algorithm = "kk") +
   geom_edge_link() +
-  geom_node_label(mapping = aes(label = firstname))
+  geom_node_label(mapping = aes(label = firstname)) +
+  labs(
+    title = "A Visualization of a social network"
+  )
   
 ```
-## Task 3: Highlighting top 4 social People with most interactions.
+## Task 3: Highlighting top 4 most social people with most interactions.
 
 ```{r}
+#| warning: false
+
 library(stringr)
 library(ggtext)
 
 # Generating two dfs having count of id for edges
+# these will be left-joined to the nodes
 df_edges_count_to <- df_edges %>% 
   count(to) %>% 
   rename(count_to = n)
@@ -96,9 +101,9 @@ df_nodes_firstname_counts <- df_nodes_firstname %>%
     rn = row_number(),
     top_4 = ifelse(between(rn,1,4), TRUE, FALSE)
   ) %>% 
-  arrange(id) %>% 
+  arrange(id) %>% # this is very important for the ggraph to work!
   ungroup() %>% 
-  mutate(fill_color = case_when(
+  mutate(fill_color = case_when( # adding a fill color for highlighting
     rn == 1 ~ "gold",
     rn == 2 ~ "lightgreen",
     rn == 3 ~ "orange",
@@ -106,6 +111,7 @@ df_nodes_firstname_counts <- df_nodes_firstname %>%
     TRUE ~"lightgrey"
   ))
 
+# adding the names to the edges for highlighting
 df_edges_with_names <- df_edges %>% 
   left_join(df_nodes_firstname_counts, join_by(from == id)) %>% 
   select(from, to, fill_color) %>% 
@@ -113,6 +119,7 @@ df_edges_with_names <- df_edges %>%
   left_join(df_nodes_firstname_counts, join_by(to == id)) %>% 
   select(from, to, from_fill_color, fill_color) %>% 
     rename(to_fill_color = fill_color)
+
 # to display in text below the 4 most social individuals
 top_4_string <- df_nodes_firstname_counts %>% 
   filter(top_4) %>% 
@@ -120,7 +127,6 @@ top_4_string <- df_nodes_firstname_counts %>%
   group_by(99) %>% 
   summarize(string = paste0(name_num, collapse = "")) %>% 
   pull(string)
-
 
 twiddle_data_firstname_counts <- tbl_graph(
     nodes = df_nodes_firstname_counts,
@@ -131,7 +137,7 @@ ggraph(twiddle_data_firstname_counts, layout = "igraph", algorithm = "kk") +
   geom_edge_link() +
   geom_node_label(mapping = aes(label = firstname, fill = fill_color)) +
   labs(
-      title = "Highlighting the <span style='color:gold'>top 4</span> most social individuals"
+      title = "Highlighting the top 4 most social individuals"
     ) +
   scale_fill_identity() +
   theme(
@@ -153,7 +159,7 @@ ggraph(twiddle_data_firstname_counts,
        algorithm = "kk") +
   geom_edge_link() +
   geom_node_text(
-    mapping = aes(label = ifelse(top_4, firstname, ""),
+    mapping = aes(label = ifelse(top_4, firstname, ""), # show only top 4
                   fill = top_4),
     nudge_y = 0.28,
     nudge_x = 0.28,
@@ -162,7 +168,7 @@ ggraph(twiddle_data_firstname_counts,
   geom_node_point(mapping = aes(fill = fill_color),
                   shape = 21,
                   size = 5) + 
-  labs(title = "Highlighting the <span style='color:gold'>top 4</span> most social individuals") +  
+  labs(title = "Highlighting the top 4 most social individuals") +  
   scale_fill_identity() +
   theme(plot.title = element_markdown(),
         legend.position = "none")
@@ -180,7 +186,7 @@ top_4_list <- df_nodes_firstname_counts %>%
 twiddle_data_colored <- twiddle_data_firstname_counts %>% 
   activate(edges) %>% 
   mutate(
-    edge_color = case_when(
+    edge_color = case_when( # see Issue 17 for explanation on github.
       from %in% top_4_list$id & to %in% top_4_list$id ~ from_fill_color,
       from %in% top_4_list$id ~ from_fill_color,
       to %in% top_4_list$id ~ to_fill_color,
@@ -189,14 +195,15 @@ twiddle_data_colored <- twiddle_data_firstname_counts %>%
   )
 
 
-ggraph(twiddle_data_colored,
+gg <- ggraph(twiddle_data_colored,
        layout = "igraph",
        algorithm = "kk") +
   geom_edge_link(mapping = aes(color = edge_color)) +
   geom_node_text(
     mapping = aes(label = ifelse(top_4, firstname, "")),
-    nudge_y = 0.28,
-    nudge_x = 0.28,
+    # nudge_y = 0.28,
+    # nudge_x = 0.28,
+    repel = TRUE
 
   ) +
   geom_node_point(mapping = aes(fill = fill_color),
@@ -204,9 +211,15 @@ ggraph(twiddle_data_colored,
                   size = 5) + 
   labs(title = "Highlighting the <span style='color:gold'>top 4</span> most social individuals") +  
   scale_fill_identity() +
-  scale_edge_color_identity() +
-  theme(plot.title = element_markdown(),
-        ) #legend.position = "none"
-
+  scale_edge_color_identity() + 
+  theme(plot.title = element_markdown())
+gg
 ```
-
+## Task 6: Making the plot self-explasnatory
+```{r}
+gg_polished <- gg +
+  labs(title = "Visualising the 4 students with the most social interactions",
+       subtitle = "Students with the <span style='color:gold'>most</span>, <span style='color:lightgreen'>second most</span>, <span style='color:orange'>third most</span> and <span style='color:lightblue'>fourth most</span> connections are highlighted.") +
+  theme(plot.subtitle = element_markdown())
+gg_polished
+```
