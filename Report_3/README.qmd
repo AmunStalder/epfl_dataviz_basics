@@ -158,3 +158,88 @@ ggplot(mapping = aes(x = time, y = gap, group = id)) +
   hrbrthemes::theme_ipsum() +
   theme(legend.position = "none")
 ```
+## Task 3: Plotting the data on a (cartographyic map
+We'll use the {sf} package for that. Let's first try to load the map data from 
+`naturalearth`.
+```{r}
+#| warning: false
+#| echo: false
+
+library(sf)
+
+world <- st_read("data/ne_110m_admin_0_countries.shp", quiet=TRUE)
+
+ggplot() +
+  geom_sf(data = world) +
+  theme_void()
+
+```
+This seems to work well. Now, let's zoom to Europe:
+```{r}
+
+ggplot() +
+  geom_sf(data = world) +
+  theme_void() +
+    coord_sf(
+    xlim = c(-25, 40),
+    ylim = c(30, 70)    
+  )
+```
+That doesn't look too bad. Let's add the data of the year 2018
+```{r}
+gap_2018 <- df_gap_longer_top_12 %>% 
+  filter(time == 2018)
+
+europe_with_gap_data <- world %>% 
+  left_join(gap_2018, join_by(SOVEREIGNT == id))
+
+ggplot() +
+  geom_sf(
+    data = europe_with_gap_data,
+    mapping = aes(fill = gap)) +
+  theme_void() +
+    coord_sf(
+    xlim = c(-25, 40),
+    ylim = c(30, 70)    
+  )
+```
+It seems, that there is some missing data (e.g. Germany). The most likely cause 
+is that there were some mismatches between `SOVEREIGNT` and `id`. Let's check it out:
+```{r}
+gap_2018 %>%
+  select(id) %>%
+  distinct() %>%
+  left_join(world, join_by(id == SOVEREIGNT)) %>% 
+  filter(is.na(NAME)) %>% 
+  select(id, NAME)
+```
+When inspecting these values, we have to change some names in the `id` column.
+Next, we'll plot the data again
+```{r}
+gap_2018_renamed <- gap_2018 %>% 
+  filter(id != "France") %>% # We'll keep the "France (metropolitan)" one
+  mutate( id = case_when(
+    id == "North Macedonia" ~ "Macedonia",
+    id == "Serbia" ~ "Republic of Serbia",
+    id == "Germany (until 1990 former territory of the FRG)" ~ "Germany",
+    id == "France (metropolitan)" ~ "France",
+    TRUE ~ id
+  ))
+
+europe_with_gap_data <- world %>% 
+  left_join(gap_2018_renamed, join_by(SOVEREIGNT == id))
+
+ggplot() +
+  geom_sf(
+    data = europe_with_gap_data,
+    mapping = aes(fill = gap)) +
+  theme_void() +
+    coord_sf(
+    xlim = c(-25, 40),
+    ylim = c(30, 70)    
+  ) +
+  theme(legend.title = element_blank()) +
+  labs(title = "Gender employment gap in Europe",
+       subtitle = "Annual difference between the employment rates of men and women agen 20-64",
+       caption = "Source: Eurostat")
+```
