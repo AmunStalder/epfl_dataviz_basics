@@ -1,0 +1,160 @@
+---
+title: "Applied Data Science: Communication and Visualisation - Project 1.3"
+author: "Amun Stalder"
+date: "2024-04-29"
+format: 
+  html:
+    fig-width: 8
+    fig-height: 4
+    code-fold: false
+---
+```{r setup, include=FALSE}
+#| warning: false
+```
+
+# Introduction to the Cartography Project
+As part of the *Applied Data Science: Communication and Visualisation* course for
+the Certificate of Open Studies (COS) of the EPFL, the students show their acquired skills
+in small data science projects. This markdown file is about the analysis cartography data.
+
+# Analysing the data
+## Task 1: Loading the data and inspecting a first graph
+Firstly, we load the data using the {readxl} package. We make an initial data-wrangling
+in order to bring it in a useful format for plotting. The Excel file is not very 
+clean in the sense of a proper data frame, and therefore some tests are added in 
+order to identify whether what we see in the Excel file is also what we get in the R
+data frame,
+
+```{r}
+#| warning: false
+library(dplyr)
+library(readxl)
+library(stringr)
+library(tidyr)
+library(testthat)
+
+# to drop wrong values because of the legend in the excel
+drop_list <- c("Special value",
+               ":",
+               "Available flags:",
+               "b",
+               "e")
+
+df_gap <-
+  read_excel("data/employment_gap.xlsx",
+             sheet = 3,
+             skip = 9)
+
+df_gap_longer <- df_gap %>%
+  select(-starts_with("...")) %>% # dropping useless cols
+  filter(time != "geo (Labels)") %>%
+  rename(id = time) %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "time",
+               values_to = "gap") %>%
+  filter(!(id %in% drop_list)) %>%
+  mutate(gap = as.numeric(gap), # here, the ":" is converted to "NA"
+         gap = round(gap, 2),
+         time = as.numeric(time))
+
+# Adding some unit-tests:
+test_that(
+  "Amount of NA in gap should be 59",
+  expect_equal(df_gap_longer %>%
+                 filter(is.na(gap)) %>%
+                 count() %>%
+                 pull(),
+               59)
+)
+test_that("Smallest year should be 2005, largest 2018",
+          expect_equal(
+            min(df_gap_longer$time) == 2005,
+            max(df_gap_longer$time) == 2018
+          ))
+
+df_gap_longer <- df_gap_longer %>%
+  filter(!is.na(gap)) # Two contries will be dropped here, hence from 41 to 39
+
+test_that(
+  "Distinct number of countries should be 38 after removing Albania and LI",
+  expect_equal(
+    df_gap_longer %>%
+      select(id) %>%
+      distinct() %>%
+      count() %>%
+      pull(),
+    39
+  )
+)
+
+glimpse(df_gap_longer)
+```
+Now let's develop a graph similar to the one shown on the course website:
+```{r}
+#| warning: false
+library(ggplot2)
+library(ggtext)
+library(geomtextpath)
+library(ggrepel)
+
+df_gap_longer_top_12 <- df_gap_longer %>%
+  arrange(time) %>% 
+  group_by(id) %>% #identify the last entry (top 12 will be scored by last entry)
+  mutate(rn_last = row_number(),
+         is_last = ifelse(rn_last == max(rn_last), TRUE, FALSE)) %>% 
+  ungroup() %>%
+  arrange(desc(gap)) %>% # find the 12 highest last values in last entries
+  group_by(is_last) %>% 
+  mutate(rn = row_number(),
+         is_top_12 = ifelse(is_last == TRUE & rn %>% between(1, 12), TRUE, FALSE),
+         id = forcats::fct_inorder(id)) %>% 
+  select(-rn,-rn_last) %>% 
+  ungroup() %>% 
+  group_by(id) %>% # Make the whole group true 
+  mutate(is_top_12 = any(is_top_12)) %>%
+  ungroup()
+
+
+ggplot(mapping = aes(x = time, y = gap, group = id)) +
+  geom_line(data = df_gap_longer_top_12,
+            color = "grey", alpha = 0.5) +
+  geom_line(data = df_gap_longer_top_12 %>% filter(is_top_12),
+            mapping = aes(color = id, y = gap)) +
+  geom_text_repel(data = df_gap_longer_top_12 %>%
+                    filter(is_top_12, is_last),
+                   aes(label = id, color = id),
+                   size = 3,
+                   box.padding = 0.3,
+                   point.padding = 0.3,
+                   segment.size = 0.2, force = 20) +
+  scale_color_brewer(palette = "Paired") +
+  labs(
+    title= "Gender employment gap",
+    subtitle= "Annual difference between the employment rates of men and women aged 30-64",
+    x = "Year",
+    y = "Percentage of total population",
+    caption = "Source: Eurostat"
+  ) +
+  hrbrthemes::theme_ipsum() +
+  theme(legend.position = "none")
+
+```
+## Task 2: Highlighting France
+We now highlight France with blue color
+```{r}
+#| warning: false
+ggplot(mapping = aes(x = time, y = gap, group = id)) +
+  geom_line(data = df_gap_longer_top_12,
+            color = "grey", alpha = 0.5) +
+  geom_line(data = df_gap_longer_top_12 %>% filter(id == "France (metropolitan)"),
+            color = "blue") +
+  labs(
+    title= "Gender employment ga in France and other EU countries",
+    subtitle= "Annual difference between the employment rates of men and women aged 30-64",
+    x = "Year",
+    y = "Percentage of total population",
+    caption = "Source: Eurostat"
+  ) +
+  hrbrthemes::theme_ipsum() +
+  theme(legend.position = "none")
+```
