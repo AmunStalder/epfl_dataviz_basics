@@ -437,5 +437,39 @@ ggplot() +
 
 ```{r}
 
+top_5_gap_highest <- df_gap_longer_top_12 %>% 
+  arrange(desc(gap)) %>% 
+  select(id) %>% 
+  distinct() %>% 
+  slice(1:5) %>%
+  group_by() %>% 
+  summarize(concatenated = paste(id, collapse = ", ")) %>% 
+  ungroup() %>% 
+  pull()
+
+top_5_gap_lowest <- df_gap_longer_top_12 %>% 
+  arrange(gap) %>% 
+  select(id) %>% 
+  distinct() %>% 
+  slice(1:5) %>%
+  group_by() %>% 
+  summarize(concatenated = paste(id, collapse = ", ")) %>% 
+  ungroup() %>% 
+  pull()
+
+top_5_decrease <- df_gap_longer_top_12 %>% 
+  group_by(id) %>% 
+  summarize(diff = max(gap) - min(gap)) %>% 
+  ungroup() %>% 
+  arrange(desc(diff)) %>% 
+  slice(1:5) %>% 
+  group_by() %>% 
+  summarize(concatenated = paste0(paste0(id, " (", diff, "%)"), collapse = ", ")) %>% 
+  ungroup() %>% 
+  pull()
+  
 ```
 
+The countries with the highest gender employment gap rate in Europe since 2005 are `r top_5_gap_highest`.
+The countries with the lowest gender employment gap are `r top_5_gap_lowest`.
+The countries with the highest difference from highest to lowest observation are `r top_5_decrease`
