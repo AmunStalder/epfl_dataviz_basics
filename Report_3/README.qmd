@@ -158,16 +158,18 @@ ggplot(mapping = aes(x = time, y = gap, group = id)) +
   hrbrthemes::theme_ipsum() +
   theme(legend.position = "none")
 ```
-## Task 3: Plotting the data on a (cartographyic map
+## Task 3: Plotting the data on a map
 We'll use the {sf} package for that. Let's first try to load the map data from 
 `naturalearth`.
 ```{r}
 #| warning: false
 #| echo: false
 
+library(rnaturalearth)
 library(sf)
 
-world <- st_read("data/ne_110m_admin_0_countries.shp", quiet=TRUE)
+world <- ne_countries(scale = "medium", returnclass = "sf")
+#world <- st_read("data/ne_110m_admin_0_countries.shp", quiet=TRUE)
 
 ggplot() +
   geom_sf(data = world) +
@@ -191,7 +193,7 @@ gap_2018 <- df_gap_longer_top_12 %>%
   filter(time == 2018)
 
 europe_with_gap_data <- world %>% 
-  left_join(gap_2018, join_by(SOVEREIGNT == id))
+  left_join(gap_2018, join_by(sovereignt == id))
 
 ggplot() +
   geom_sf(
@@ -204,14 +206,14 @@ ggplot() +
   )
 ```
 It seems, that there is some missing data (e.g. Germany). The most likely cause 
-is that there were some mismatches between `SOVEREIGNT` and `id`. Let's check it out:
+is that there were some mismatches between `sovereignt` and `id`. Let's check it out:
 ```{r}
 gap_2018 %>%
   select(id) %>%
   distinct() %>%
-  left_join(world, join_by(id == SOVEREIGNT)) %>% 
-  filter(is.na(NAME)) %>% 
-  select(id, NAME)
+  left_join(world, join_by(id == sovereignt)) %>% 
+  filter(is.na(name)) %>% 
+  select(id, name)
 ```
 When inspecting these values, we have to change some names in the `id` column.
 Next, we'll plot the data again
@@ -219,7 +221,7 @@ Next, we'll plot the data again
 gap_2018_renamed <- gap_2018 %>% 
   filter(id != "France") %>% # We'll keep the "France (metropolitan)" one
   mutate( id = case_when(
-    id == "North Macedonia" ~ "Macedonia",
+    #id == "North Macedonia" ~ "Macedonia",
     id == "Serbia" ~ "Republic of Serbia",
     id == "Germany (until 1990 former territory of the FRG)" ~ "Germany",
     id == "France (metropolitan)" ~ "France",
@@ -227,7 +229,7 @@ gap_2018_renamed <- gap_2018 %>%
   ))
 
 europe_with_gap_data <- world %>% 
-  left_join(gap_2018_renamed, join_by(SOVEREIGNT == id))
+  left_join(gap_2018_renamed, join_by(sovereignt == id))
 
 ggplot() +
   geom_sf(
@@ -242,4 +244,100 @@ ggplot() +
   labs(title = "Gender employment gap in Europe",
        subtitle = "Annual difference between the employment rates of men and women agen 20-64",
        caption = "Source: Eurostat")
+```
+## Task 4: Making a Choropleth
+To visualise 4 categories of employment gap, we use the quantile and cut function
+to get 4 bins with about even number of countries per bin.
+
+```{r}
+
+bins <- round(quantile(gap_2018_renamed$gap, c(0, 0.25, 0.5, 0.75, 1)),0)
+
+get_labels_from_bins <- function(bins) {
+  checkmate::assert_vector(bins)
+  labels <-
+    tibble(
+      lab1 = bins,
+      lab2 = c(bins[2:length(bins)], NA)
+    ) %>%
+    slice(1:n() - 1) %>% 
+    mutate_all(round, digits = 0) %>%
+    mutate_all(paste0, "%") %>% 
+    mutate(labs = paste(lab1, lab2, sep = " -"))
+  return(labels$labs)
+}
+
+
+gap_2018_with_categ <- gap_2018_renamed %>%
+  arrange(gap) %>% 
+  mutate(
+    bin = cut(gap, breaks = bins, labels = get_labels_from_bins(bins), right = TRUE),
+    bin = forcats::fct_inorder(bin)
+  )
+europe_with_gap_data <- world %>% 
+  left_join(gap_2018_with_categ, join_by(sovereignt == id))
+
+ggplot() +
+  geom_sf(
+    data = europe_with_gap_data,
+    mapping = aes(fill = bin)) +
+  theme_void() +
+    coord_sf(
+    xlim = c(-25, 40),
+    ylim = c(30, 70)    
+  ) +
+  theme(legend.title = element_blank()) +
+  labs(title = "Gender employment gap in Europe",
+       subtitle = "Annual difference between the employment rates of men and women agen 20-64",
+       caption = "Source: Eurostat")+
+  scale_fill_brewer(palette = "RdYlGn",direction = 1)
+
+```
+#Task 5: Annotating the map
+
+```{r}
+#| warning: false
+
+# getting the central location per country for the geom_text
+europe_with_gap_data$centroid <- st_centroid(europe_with_gap_data$geometry)
+
+ggplot() +
+  geom_sf(data = europe_with_gap_data,
+          mapping = aes(fill = bin)) +
+  theme_void() +
+  coord_sf(xlim = c(-25, 40),
+           ylim = c(30, 70)) +
+  theme(legend.title = element_blank()) +
+  labs(title = "Gender employment gap in Europe",
+       subtitle = "Annual difference between the employment rates of men and women agen 20-64",
+       caption = "Source: Eurostat") +
+  scale_fill_brewer(palette = "RdYlGn", direction = -1) +
+  geom_text(data = europe_with_gap_data,
+            aes(label = round(gap,0),
+                x = st_coordinates(centroid)[, "X"],
+                y = st_coordinates(centroid)[, "Y"]),
+            size = 3,
+            color = "blue",
+            check_overlap = TRUE)
+
+```
+
+```{r}
+# Load required packages
+library(rnaturalearth)
+library(ggplot2)
+library(sf)
+
+# Load world map data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+# Calculate centroids of countries
+world$centroid <- st_centroid(world$geometry)
+
+# Plot the map
+ggplot() +
+  geom_sf(data = world) +
+  geom_text(data = world, aes(label = name, x = st_coordinates(centroid)[, "X"], y = st_coordinates(centroid)[, "Y"]), size = 2, check_overlap = TRUE) +
+  theme_void()
+
 ```
