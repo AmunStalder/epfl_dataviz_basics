@@ -263,7 +263,7 @@ get_labels_from_bins <- function(bins) {
     slice(1:n() - 1) %>% 
     mutate_all(round, digits = 0) %>%
     mutate_all(paste0, "%") %>% 
-    mutate(labs = paste(lab1, lab2, sep = " -"))
+    mutate(labs = paste(lab1, lab2, sep = " to "))
   return(labels$labs)
 }
 
@@ -364,9 +364,51 @@ ggplot() +
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Gender employment gap in Europe",
-       subtitle = "DIfference between 2014 and 2018",
+       subtitle = "DIfference between 2012 and 2018",
        caption = "Source: Eurostat") +
   scale_fill_brewer(palette = "RdYlGn", direction = -1) +
   facet_wrap(vars(time))
 ```
-# Task 7: Timeseries from 2012 to 2018
+# Task 7: Differences in gender employment gap
+
+```{r}
+
+# Since we have a long pivot, we use window function to get diff and filter if NA
+europe_with_gap_diff <- europe_with_gap_data_ts %>% 
+  arrange(sovereignt,time) %>% 
+  group_by(sovereignt) %>% 
+  mutate(diff = gap-lag(gap)) %>% #2018 gap minus 2012 gap
+  ungroup() %>% 
+  filter(!is.na(diff))
+
+# get the bins
+bins <- quantile(europe_with_gap_diff %>%
+                   filter(diff != 0) %>%
+                   pull(),
+                 c(0, 0.25, 0.5, 0.75, 1))
+rounded_bins <- round(bins,0)
+
+# add the labels
+europe_with_gap_diff <- europe_with_gap_diff %>%
+  arrange(diff) %>% 
+  mutate(
+    bin_diff = cut(diff,
+                   breaks = rounded_bins,
+                   labels = get_labels_from_bins(rounded_bins),
+                   right = TRUE))
+
+ggplot() +
+  geom_sf(data = europe_with_gap_diff,
+          mapping = aes(fill = bin_diff)) +
+  theme_void() +
+  coord_sf(xlim = c(-25, 40),
+           ylim = c(30, 70)) +
+  theme(legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Gender employment gap in Europe",
+       subtitle = "Difference between 2012 and 2018",
+       caption = "Source: Eurostat") + 
+   scale_fill_brewer(palette = "RdYlGn", direction = -1)
+
+```
