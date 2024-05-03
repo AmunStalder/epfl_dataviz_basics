@@ -321,23 +321,52 @@ ggplot() +
             check_overlap = TRUE)
 
 ```
-
+# Task 6: Timeseries from 2012 to 2018
 ```{r}
-# Load required packages
-library(rnaturalearth)
-library(ggplot2)
-library(sf)
+#| warning: false
 
-# Load world map data
-world <- ne_countries(scale = "medium", returnclass = "sf")
+gap_2012_to_2018 <- df_gap_longer_top_12 %>% 
+  filter(time %in% c(2012, 2018))
 
-# Calculate centroids of countries
-world$centroid <- st_centroid(world$geometry)
+gap_2012_to_2018_renamed <- gap_2012_to_2018 %>% 
+  filter(id != "France") %>% # We'll keep the "France (metropolitan)" one
+  mutate( id = case_when(
+    #id == "North Macedonia" ~ "Macedonia",
+    id == "Serbia" ~ "Republic of Serbia",
+    id == "Germany (until 1990 former territory of the FRG)" ~ "Germany",
+    id == "France (metropolitan)" ~ "France",
+    TRUE ~ id
+  ))
 
-# Plot the map
+bins <- round(quantile(gap_2012_to_2018_renamed$gap, c(0, 0.25, 0.5, 0.75, 1)),0)
+
+gap_2012_to_2018_with_categ <- gap_2012_to_2018_renamed %>%
+  arrange(gap) %>% 
+  mutate(
+    bin = cut(gap, breaks = bins, labels = get_labels_from_bins(bins), right = TRUE),
+    bin = forcats::fct_inorder(bin)
+  )
+
+europe_with_gap_data_ts <- world %>% 
+  left_join(gap_2012_to_2018_with_categ, join_by(sovereignt == id)) %>% 
+  filter(!is.na(time)) # to filter ot countries that do not have gap value
+
+# getting the central location per country for the geom_text
+europe_with_gap_data_ts$centroid <- st_centroid(europe_with_gap_data_ts$geometry)
+
 ggplot() +
-  geom_sf(data = world) +
-  geom_text(data = world, aes(label = name, x = st_coordinates(centroid)[, "X"], y = st_coordinates(centroid)[, "Y"]), size = 2, check_overlap = TRUE) +
-  theme_void()
-
+  geom_sf(data = europe_with_gap_data_ts,
+          mapping = aes(fill = bin)) +
+  theme_void() +
+  coord_sf(xlim = c(-25, 40),
+           ylim = c(30, 70)) +
+  theme(legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Gender employment gap in Europe",
+       subtitle = "DIfference between 2014 and 2018",
+       caption = "Source: Eurostat") +
+  scale_fill_brewer(palette = "RdYlGn", direction = -1) +
+  facet_wrap(vars(time))
 ```
+# Task 7: Timeseries from 2012 to 2018
