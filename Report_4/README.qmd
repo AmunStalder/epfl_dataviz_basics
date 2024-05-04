@@ -28,6 +28,8 @@ library(tibble)
 library(ggplot2)
 library(dplyr)
 library(forcats)
+library(waffle)
+library(RColorBrewer)
 
 df_pie <- tibble(
   category = c(
@@ -73,7 +75,8 @@ pie_chart <- df_pie %>%
     coord_polar("y", start = 0) +
     theme_void() +
     scale_fill_manual(values = df_pie$fill) +
-    theme(legend.title = element_blank()) 
+    theme(legend.title = element_blank()) +
+    labs(title = "Where the taxes in Lausanne Go")
   
 pie_chart
 
@@ -91,7 +94,8 @@ df_pie_reordered <- df_pie %>%
   mutate(
     color = ifelse(category %in% c("Health", "Social", "Education"),"black", NA),
     category = fct_inorder(category)
-  )
+  ) %>% 
+  arrange(chf)
 
 pie_chart <- df_pie_reordered %>% 
   ggplot(aes(x = "", y = chf, fill = category)) +
@@ -101,8 +105,51 @@ pie_chart <- df_pie_reordered %>%
     scale_fill_brewer(palette = "RdYlGn", direction = 1) +
     scale_color_identity() +
     # scale_fill_manual(values = df_pie$fill) +
-    theme(legend.title = element_blank())
+    theme(legend.title = element_blank()) +
+    labs(title = "Where the taxes in Lausanne Go")
 
 pie_chart
+
+```
+
+## Task 3: Proposing two alternatives
+Since piecharts are not very easily readable, It can make more sense to plot them
+as simple barplot:
+
+```{r}
+
+bar_chart <- df_pie_reordered %>% 
+  ggplot(aes(y = category %>% fct_rev(), x = chf, fill = category)) +
+    geom_bar(aes(color = color), linewidth = 1.2, stat = "identity", width = 1 ) +
+    theme_classic() +
+    scale_fill_brewer(palette = "RdYlGn", direction = 1) +
+    scale_color_identity() +
+    theme(
+      legend.title = element_blank(),
+      legend.position = "none"
+    ) +
+    labs(
+      x = "CHF",
+      y = "") +
+    labs(title = "Where the taxes in Lausanne Go")
+
+bar_chart
+
+```
+Another cool way to plot relative amounts is to use are in a waffle chart:
+
+```{r}
+
+waffle_cahrt <- df_pie_reordered %>% 
+  ggplot(aes(fill = category, values = chf %>%  round(0))) +
+    geom_waffle(n_rows = 10) +
+    theme_void() +
+    coord_flip() +
+    scale_fill_brewer(palette = "RdYlGn", direction = 1) +
+    scale_color_identity() +
+    labs(title = "Where the taxes in Lausanne Go") +
+    theme(legend.title = element_blank())
+
+waffle_cahrt
 
 ```
