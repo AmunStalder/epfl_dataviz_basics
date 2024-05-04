@@ -24,7 +24,6 @@ a chart found in a brochure.
 ```{r}
 #| warning: false
 
-
 library(tibble)
 library(ggplot2)
 library(dplyr)
@@ -76,6 +75,34 @@ pie_chart <- df_pie %>%
     scale_fill_manual(values = df_pie$fill) +
     theme(legend.title = element_blank()) 
   
+pie_chart
+
+```
+
+## Task 2: Changing colors and highlighting categories
+It makes more sense, to use a color palette that shows the top expenses in red
+and less high expenses in green. Furthermore, the top 3 categories will bordered
+in black.
+
+```{r}
+
+df_pie_reordered <- df_pie %>% 
+  arrange(desc(chf)) %>% 
+  mutate(
+    color = ifelse(category %in% c("Health", "Social", "Education"),"black", NA),
+    category = fct_inorder(category)
+  )
+
+pie_chart <- df_pie_reordered %>% 
+  ggplot(aes(x = "", y = chf, fill = category)) +
+    geom_bar(aes(color = color), linewidth = 1.2, stat = "identity", width = 1 ) +
+    coord_polar("y", start = 0) +
+    theme_void() +
+    scale_fill_brewer(palette = "RdYlGn", direction = 1) +
+    scale_color_identity() +
+    # scale_fill_manual(values = df_pie$fill) +
+    theme(legend.title = element_blank())
+
 pie_chart
 
 ```
