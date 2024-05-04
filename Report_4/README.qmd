@@ -1,0 +1,81 @@
+---
+title: "Applied Data Science: Communication and Visualisation - Project 1.4"
+author: "Amun Stalder"
+date: "2024-05-04"
+format: 
+  html:
+    fig-width: 8
+    fig-height: 4
+    code-fold: false
+---
+```{r setup, include=FALSE}
+#| warning: false
+```
+
+# Introduction to the Cartography Project
+As part of the *Applied Data Science: Communication and Visualisation* course for
+the Certificate of Open Studies (COS) of the EPFL, the students show their acquired skills
+in small data science projects. This markdown file is about the reproduction of
+a chart found in a brochure.
+
+# Reproducing and improving the chart
+## Task 1: Recreating the piechart
+
+```{r}
+#| warning: false
+
+
+library(tibble)
+library(ggplot2)
+library(dplyr)
+library(forcats)
+
+df_pie <- tibble(
+  category = c(
+    "Admin",
+    "Culture",
+    "Environment",
+    "Education",
+    "Health",
+    "Auto traffic",
+    "Security",
+    "Social",
+    "Finance / Taxes",
+    "Economy"),
+  chf = c(
+    3.77,
+    1.60,
+    1.19,
+    28.92,
+    14.78,
+    4.09,
+    7.60,
+    28.50,
+    5.47,
+    4.08),
+fill = c(
+    "#a2dbc0",
+    "#86c4a6",
+    "#a2dbc0",
+    "#0fa65d",
+    "#86c4a6",
+    "#a2dbc0",
+    "#0fa65d",
+    "#a2dbc0",
+    "#86c4a6",
+    "#0fa65d")
+  ) %>% mutate(
+    category = category %>% fct_inorder() %>% fct_rev()
+  )
+
+pie_chart <- df_pie %>% 
+  ggplot(aes(x = "", y = chf, fill = category)) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y", start = 0) +
+    theme_void() +
+    scale_fill_manual(values = df_pie$fill) +
+    theme(legend.title = element_blank()) 
+  
+pie_chart
+
+```
