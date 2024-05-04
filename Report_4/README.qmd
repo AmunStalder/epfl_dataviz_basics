@@ -29,6 +29,7 @@ library(ggplot2)
 library(dplyr)
 library(forcats)
 library(waffle)
+library(tidyr)
 library(RColorBrewer)
 
 df_pie <- tibble(
@@ -54,7 +55,29 @@ df_pie <- tibble(
     28.50,
     5.47,
     4.08),
-fill = c(
+  `2018` = c( # this column was added later and will be used for pivoting
+    4.04,
+    1.65,
+    1.16,
+    28.50,
+    12.85,
+    3.58,
+    7.12,
+    27.87,
+    8.43,
+    4.80),
+  `2017` = c( # this column was added later and will be used for pivoting
+    4.27,
+    1.98,
+    0.95,
+    28.97,
+    15.26,
+    4.47,
+    7.49,
+    27.55,
+    4.80,
+    4.26),
+  fill = c(
     "#a2dbc0",
     "#86c4a6",
     "#a2dbc0",
@@ -140,7 +163,7 @@ Another cool way to plot relative amounts is to use are in a waffle chart:
 
 ```{r}
 
-waffle_cahrt <- df_pie_reordered %>% 
+waffle_chart <- df_pie_reordered %>% 
   ggplot(aes(fill = category, values = chf %>%  round(0))) +
     geom_waffle(n_rows = 10) +
     theme_void() +
@@ -150,6 +173,68 @@ waffle_cahrt <- df_pie_reordered %>%
     labs(title = "Where the taxes in Lausanne Go") +
     theme(legend.title = element_blank())
 
-waffle_cahrt
+waffle_chart
 
 ```
+## Task 4: Visualizing differences between 2017, 2018 and 2019
+To see how the expenses have changed over time, we could make a lineplot, since
+they are good for displaying time series and comparing between the different years.
+```{r}
+
+df_longer <- df_pie_reordered %>% 
+  rename(`2019` = chf) %>% 
+  pivot_longer(
+    cols = c(`2017`,`2018`,`2019`),
+    names_to ="year",
+    values_to = "chf"
+  )
+
+line_chart <- 
+  df_longer %>% 
+  ggplot(aes(x=year, y=chf, group = category, color = category)) +
+  geom_line() +
+  facet_wrap(nrow=2, vars(category)) +
+  theme_minimal() +
+  labs(
+    title = "Where the taxes of lausanne are invested in",
+    subtitle = "From 2017 - 2019",
+    x = "Year",
+    y = "CHF"
+  ) +
+  theme(legend.position = "none")
+
+line_chart
+
+```
+To better show the relative differences compared to the year 2017, We can calculate
+the percentage by norming the values of 2017 as 100%
+```{r}
+df_longer_relative <- df_longer %>% 
+  arrange(category, year) %>% 
+  group_by(category) %>% 
+  mutate(percentage = case_when(
+    year == 2017 ~ 0,
+    year == 2018 ~ 100 *(chf/lag(chf)-1),
+    year == 2019 ~ 100 *(chf/lag(chf, n=2)-1),
+  ))
+
+line_chart_relative <- 
+  df_longer_relative %>% 
+  ggplot(aes(x=year, y=percentage, group = category, color = category)) +
+  geom_line() +
+  facet_wrap(nrow=2, vars(category)) +
+  theme_minimal() +
+  labs(
+    title = "Relative difference of Tax expenses compared to 2017",
+    subtitle = "From 2017 - 2019",
+    x = "Year",
+    y = "Change compared to 2017 [%]"
+  ) +
+  theme(legend.position = "none")
+
+line_chart_relative
+```
+Using this visualization, it becomes more clear where the highest differences were
+when norming the values to 2017. Especially the Finance / Taxes category had a big
+difference from 1027 to 2018 and from 2018 to 2019, which did not seem that drastic in the 
+first version of the plot with the absolute numbers.
